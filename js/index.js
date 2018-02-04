@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
 
-  const STEP = 0.001;
+  const STEP = 0.1;
 
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -13,39 +13,49 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.classList.add("fullscreen");
   document.body.appendChild(canvas);
 
+  const $graphButton = document.getElementById("graphButton");
+  const $function = document.getElementById("function");
+  const $inputDomainStart = document.getElementById("inputDomainStart");
+  const $inputDomainEnd = document.getElementById("inputDomainEnd");
+  const $outputDomainStart = document.getElementById("outputDomainStart");
+  const $outputDomainEnd = document.getElementById("outputDomainEnd");
+
   const mapRange = (input, input_start, input_end, output_start, output_end) =>
       output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
 
   const graph = () => {
-    // TODO: This is horrible. Can we have something like Python's
-    // ast.literal_eval?
-    const f = (x) => eval(functionInput.value);
+    const f = (x) => eval($function.value);
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
 
-    console.info("Began drawing");
-    for (let x = 0; x < canvas.width; x += STEP) {
-      context.fillRect(x, canvas.height - f(mapRange(x, 0, canvas.width, -(canvas.width / 2), canvas.width / 2)), 1, 1);
+    const inputDomainStart = +$inputDomainStart.value;
+    const inputDomainEnd = +$inputDomainEnd.value;
+
+    const outputDomainStart = +$outputDomainStart.value;
+    const outputDomainEnd = +$outputDomainEnd.value;
+
+    console.time("drawing");
+    for (let screenX = 0; screenX < canvas.width; screenX += STEP) {
+      const mathX = mapRange(screenX,
+                             0, canvas.width,
+                             inputDomainStart, inputDomainEnd);
+      const mathY = f(mathX);
+      const screenY = mapRange(mathY, outputDomainStart, outputDomainEnd, canvas.height, 0);
+      console.assert(mathY >= outputDomainStart && mathY <= outputDomainEnd, mathY);
+      context.fillRect(screenX, screenY, 1, 1);
     }
-    console.info("Finished drawing");
+    console.timeEnd("drawing");
 
     context.fill();
   };
-  const button = document.createElement("button");
-  button.textContent = "Redraw";
-  button.addEventListener("click", graph);
 
-  const functionInput = document.createElement("input");
-  functionInput.value = "x";
+  $graphButton.addEventListener("click", graph);
 
-  document.body.appendChild(button);
-  document.body.appendChild(functionInput);
-
-  graph();
   window.addEventListener("resize", () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    if ($function.value.length === 0) return;
     graph();
   });
 });
