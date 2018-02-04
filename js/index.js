@@ -43,8 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
                              0, canvas.width,
                              inputDomainStart, inputDomainEnd);
       const mathY = f(mathX);
-      const screenY = mapRange(mathY, outputDomainStart, outputDomainEnd, canvas.height, 0);
       console.assert(mathY >= outputDomainStart && mathY <= outputDomainEnd, mathY);
+
+      const screenY = mapRange(-mathY,
+                               outputDomainStart, outputDomainEnd, 
+                               0, canvas.height);
 
       const i = (Math.floor(screenY) * canvas.width + Math.floor(screenX)) * 4;
       pixels[i + 0] = 0;
