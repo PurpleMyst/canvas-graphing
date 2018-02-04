@@ -24,10 +24,12 @@ document.addEventListener("DOMContentLoaded", () => {
       output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
 
   const graph = () => {
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+
     const f = (x) => eval($function.value);
 
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.beginPath();
 
     const inputDomainStart = +$inputDomainStart.value;
     const inputDomainEnd = +$inputDomainEnd.value;
@@ -43,11 +45,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const mathY = f(mathX);
       const screenY = mapRange(mathY, outputDomainStart, outputDomainEnd, canvas.height, 0);
       console.assert(mathY >= outputDomainStart && mathY <= outputDomainEnd, mathY);
-      context.fillRect(screenX, screenY, 1, 1);
-    }
-    console.timeEnd("drawing");
 
-    context.fill();
+      const i = (Math.floor(screenY) * canvas.width + Math.floor(screenX)) * 4;
+      pixels[i + 0] = 0;
+      pixels[i + 1] = 0;
+      pixels[i + 2] = 0;
+      pixels[i + 3] = 255;
+    }
+    context.putImageData(imageData, 0, 0);
+    console.timeEnd("drawing");
   };
 
   $graphButton.addEventListener("click", graph);
